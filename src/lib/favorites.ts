@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Favorite } from "@/types/favorite";
 
+// bump the version if the Favorite shape changes
 const STORAGE_KEY = "movie-explorer:favorites:v1";
 
 function read(): Favorite[] {
@@ -26,6 +27,7 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
+  // load once on mount, then mirror state to localStorage on every change
   useEffect(() => {
     setFavorites(read());
     setHydrated(true);
@@ -34,6 +36,8 @@ export function useFavorites() {
   useEffect(() => {
     if (hydrated) write(favorites);
   }, [favorites, hydrated]);
+
+  // TODO: listen for `storage` events so two open tabs stay in sync
 
   const isFavorite = useCallback(
     (id: number) => favorites.some((f) => f.id === id),

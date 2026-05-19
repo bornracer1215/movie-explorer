@@ -47,11 +47,8 @@ export default function Home() {
     }
   }, []);
 
-  function openMovie(movie: TmdbMovie) {
-    setSelected(movie);
-  }
-
   function openFromFavorite(fav: Favorite) {
+    // we don't store overview/vote on favorites, but the modal will re-fetch full details anyway
     setSelected({
       id: fav.id,
       title: fav.title,
@@ -66,16 +63,16 @@ export default function Home() {
   function quickToggleFavorite(movie: TmdbMovie) {
     if (isFavorite(movie.id)) {
       removeFavorite(movie.id);
-    } else {
-      addFavorite({
-        id: movie.id,
-        title: movie.title,
-        posterPath: movie.poster_path,
-        releaseDate: movie.release_date,
-        rating: 0,
-        note: "",
-      });
+      return;
     }
+    addFavorite({
+      id: movie.id,
+      title: movie.title,
+      posterPath: movie.poster_path,
+      releaseDate: movie.release_date,
+      rating: 0,
+      note: "",
+    });
   }
 
   function saveFromModal(movie: TmdbMovie, rating: number, note: string) {
@@ -91,11 +88,6 @@ export default function Home() {
         note,
       });
     }
-    setSelected(null);
-  }
-
-  function removeFromModal(id: number) {
-    removeFavorite(id);
     setSelected(null);
   }
 
@@ -120,7 +112,7 @@ export default function Home() {
             </p>
           )}
           {status === "loading" && (
-            <p className="text-sm text-neutral-500">Loading…</p>
+            <p className="text-sm text-neutral-500">Loading...</p>
           )}
           {status === "error" && (
             <div className="rounded-md border border-red-300 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-300">
@@ -129,7 +121,7 @@ export default function Home() {
           )}
           {status === "success" && results.length === 0 && (
             <p className="text-sm text-neutral-500">
-              No results for &ldquo;{query}&rdquo;.
+              No results for {`"${query}"`}.
             </p>
           )}
           {status === "success" && results.length > 0 && (
@@ -139,7 +131,7 @@ export default function Home() {
                   key={m.id}
                   movie={m}
                   isFavorite={isFavorite(m.id)}
-                  onOpen={openMovie}
+                  onOpen={setSelected}
                   onToggleFavorite={quickToggleFavorite}
                 />
               ))}
@@ -166,7 +158,10 @@ export default function Home() {
           favorite={getFavorite(selected.id)}
           onClose={() => setSelected(null)}
           onSave={saveFromModal}
-          onRemove={removeFromModal}
+          onRemove={(id) => {
+            removeFavorite(id);
+            setSelected(null);
+          }}
         />
       )}
     </div>
