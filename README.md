@@ -1,53 +1,67 @@
 # Movie Explorer
 
-A small Next.js app to search movies (via TMDB), view details, and save favorites with a personal 1–5 rating and note.
+Small Next.js app to search movies, look at details, and save favorites with a rating and note.
 
-## Setup
+Live: https://movie-explorer-ten-alpha.vercel.app/
 
-1. Install deps:
-   ```bash
-   npm install
-   ```
-2. Create `.env.local` in the project root with **one** of:
-   ```
-   TMDB_BEARER_TOKEN=your_v4_read_access_token
-   # or
-   TMDB_API_KEY=your_v3_api_key
-   ```
-   Get a token at https://www.themoviedb.org/settings/api.
-3. Run dev server:
-   ```bash
-   npm run dev
-   ```
-   Open http://localhost:3000.
+## Running it locally
 
-## Hosted app
+```bash
+npm install
+```
 
-_TODO: add Vercel URL after deploy._
+Then create a `.env.local` in this folder with a TMDB credential. You only need one of these:
 
-## Features
+```
+TMDB_BEARER_TOKEN=your_v4_read_access_token
+# or
+TMDB_API_KEY=your_v3_api_key
+```
 
-- Search movies by title (server-side proxy to TMDB)
-- Details view (modal): poster, overview, year, runtime, genres, tagline
-- Favorites with 1–5 star rating + optional note, persisted to LocalStorage
-- Empty / loading / error states for search and details
-- Saved indicator on result cards
+You can grab either one from https://www.themoviedb.org/settings/api (free, takes a minute).
 
-## Technical decisions & tradeoffs
+```bash
+npm run dev
+```
 
-- **API proxy.** The TMDB token never reaches the browser — all calls go through `/api/search` and `/api/movie/[id]` (Next.js route handlers in `src/app/api/`). The shared `tmdbFetch` helper in `src/lib/tmdb.ts` reads `TMDB_BEARER_TOKEN` or `TMDB_API_KEY` from the server env and surfaces TMDB error messages with status codes.
-- **State management.** Plain React state in a single client component (`src/app/page.tsx`) plus a `useFavorites` hook. No Redux/Zustand — overkill for one screen.
-- **Persistence.** LocalStorage only (key `movie-explorer:favorites:v1`). Chosen over a DB to stay in the 3-hour scope; favorites are per-browser. The shape is versioned in the key so a future migration is straightforward.
-- **Details view.** Modal rather than a separate route. Simpler navigation, keeps the search results on screen, fewer files. Tradeoff: details aren't deep-linkable.
-- **Images.** TMDB image host is allowed in `next.config.mjs`. `next/image` is used with `unoptimized` to avoid Vercel image-optimization quotas on the free tier.
-- **Styling.** Tailwind, no component library — keeps the bundle small and the markup readable.
+App is on http://localhost:3000.
 
-## Known limitations / what I'd improve with more time
+## What it does
 
-- No pagination on search results (TMDB returns 20 per page; we only show page 1).
-- No debounced live search — submit-driven.
-- No server-side persistence; favorites don't sync across devices. A `/api/favorites` route backed by SQLite/Postgres would be the next step.
-- No tests. Would add a small Vitest suite for `useFavorites` and a Playwright smoke test for search → details → save.
-- Accessibility is basic (labels, ESC-to-close); modal could trap focus and restore it on close.
-- No theming toggle; relies on system dark mode.
-- Details modal could show cast, trailer, and external ratings (a second TMDB call to `/movie/{id}?append_to_response=credits,videos`).
+- Search a title, see results (poster, title, year, short overview)
+- Click a card to open a details modal with runtime, genres, tagline
+- Save to favorites with a 1-5 star rating and an optional note
+- Favorites stick around between refreshes (LocalStorage)
+- Handles empty results, network errors, and bad input
+
+## Decisions I made
+
+**Key stays on the server.** The TMDB token is read inside `src/lib/tmdb.ts` and only ever runs in API routes (`/api/search`, `/api/movie/[id]`). The browser only talks to my own routes. If you open DevTools > Network you won't see any call to themoviedb.org.
+
+**No state library.** It's basically one page. A `useFavorites` hook for the LocalStorage side and `useState` for everything else was enough. Adding Zustand or Redux here felt like overkill.
+
+**LocalStorage, not a database.** Spec says server-side persistence is optional and to not overbuild for a 3-hour scope, so I skipped it. The storage key (`movie-explorer:favorites:v1`) is versioned so swapping in a real backend later wouldn't need a migration headache.
+
+**Modal for details, not a separate page.** Keeps you in the search results, fewer files. The downside is details aren't shareable by URL - if I wanted that I'd move it to `/movie/[id]`.
+
+**Tailwind, no UI library.** Faster to ship for something this small.
+
+**`next/image` with `unoptimized`.** TMDB posters work fine and I didn't want to burn Vercel's image optimization quota on a free deploy.
+
+## Things I'd add next
+
+- **Server-side favorites + simple auth** so the list syncs across devices. Probably SQLite via Prisma, or just Vercel Postgres + a magic-link login.
+- **Watchlist** as a separate list from rated favorites. "Saved to watch later" is different from "I watched it and here's what I thought."
+- **Recommendations.** TMDB has a `/movie/{id}/recommendations` endpoint - would be cool to show "because you liked X" on the home screen.
+- **Trailers in the modal** using TMDB's videos endpoint.
+- **Filters and sort** on favorites (by rating, date added, year).
+- **Search filters** (genre, year range).
+- Pagination on search results - right now I only show TMDB's first page.
+
+## Stuff I know is rough
+
+- No tests. Would write a few for `useFavorites` and a Playwright run-through of search > save > refresh.
+- Modal doesn't trap focus or restore it on close - accessibility is basic.
+- No debounced live search. Submit-driven for now.
+- Dark mode follows the OS, no manual toggle.
+- Search only hits page 1 of TMDB results.
