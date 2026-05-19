@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function MovieCard({ movie, isFavorite, onOpen, onToggleFavorite }: Props) {
-  const year = movie.release_date ? movie.release_date.slice(0, 4) : "—";
+  const year = movie.release_date ? movie.release_date.slice(0, 4) : "-";
   return (
     <div className="flex flex-col rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:shadow-md transition">
       <button
@@ -32,7 +32,7 @@ export function MovieCard({ movie, isFavorite, onOpen, onToggleFavorite }: Props
           <p className="text-xs text-neutral-500">{year}</p>
         </div>
         <p className="text-sm text-neutral-700 dark:text-neutral-300 line-clamp-3">
-          {movie.overview || "No description available."}
+          {movie.overview || "No overview."}
         </p>
         <div className="mt-auto flex gap-2 pt-2">
           <button

@@ -56,7 +56,7 @@ export function MovieModal({ movie, favorite, onClose, onSave, onRemove }: Props
   }, [onClose]);
 
   const isSaved = Boolean(favorite);
-  const year = movie.release_date ? movie.release_date.slice(0, 4) : "—";
+  const year = movie.release_date ? movie.release_date.slice(0, 4) : "-";
 
   function handleSave() {
     onSave(movie, rating, note);
@@ -107,12 +107,12 @@ export function MovieModal({ movie, favorite, onClose, onSave, onRemove }: Props
                 {details.tagline}
               </p>
             )}
-            {loading && <p className="text-sm text-neutral-500">Loading details…</p>}
+            {loading && <p className="text-sm text-neutral-500">Loading details...</p>}
             {error && (
-              <p className="text-sm text-red-600">Couldn’t load details: {error}</p>
+              <p className="text-sm text-red-600">Couldn't load details: {error}</p>
             )}
             <p className="text-sm leading-relaxed">
-              {movie.overview || "No description available."}
+              {movie.overview || "No overview."}
             </p>
           </div>
         </div>
@@ -132,7 +132,7 @@ export function MovieModal({ movie, favorite, onClose, onSave, onRemove }: Props
               onChange={(e) => setNote(e.target.value)}
               rows={3}
               className="w-full px-3 py-2 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="What did you think?"
+              placeholder="Optional note"
             />
           </div>
           <div className="flex gap-2 justify-end">

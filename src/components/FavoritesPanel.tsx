@@ -14,7 +14,7 @@ export function FavoritesPanel({ favorites, onOpen, onRemove }: Props) {
   if (favorites.length === 0) {
     return (
       <p className="text-sm text-neutral-500">
-        No favorites yet. Search for a movie and save it to see it here.
+        Nothing saved yet.
       </p>
     );
   }
@@ -57,7 +57,7 @@ export function FavoritesPanel({ favorites, onOpen, onRemove }: Props) {
               </button>
             </div>
             <p className="text-xs text-neutral-500">
-              {f.releaseDate ? f.releaseDate.slice(0, 4) : "—"}
+              {f.releaseDate ? f.releaseDate.slice(0, 4) : "-"}
             </p>
             <div className="mt-1">
               <RatingStars value={f.rating} size="sm" readOnly />

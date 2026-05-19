@@ -33,7 +33,7 @@ export function SearchBar({ initialValue = "", onSearch, loading }: Props) {
         disabled={loading || !value.trim()}
         className="px-4 py-2 rounded-md bg-blue-600 text-white font-medium disabled:opacity-50 hover:bg-blue-700"
       >
-        {loading ? "Searching…" : "Search"}
+        {loading ? "Searching..." : "Search"}
       </button>
     </form>
   );

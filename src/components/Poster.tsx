@@ -14,7 +14,7 @@ export function Poster({ path, alt, size = "w342", className }: Props) {
       <div
         className={`flex items-center justify-center bg-neutral-200 dark:bg-neutral-800 text-xs text-neutral-500 ${className ?? ""}`}
       >
-        No poster
+        no poster
       </div>
     );
   }
