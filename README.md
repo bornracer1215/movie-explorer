@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Movie Explorer
 
-## Getting Started
+A small Next.js app to search movies (via TMDB), view details, and save favorites with a personal 1–5 rating and note.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Install deps:
+   ```bash
+   npm install
+   ```
+2. Create `.env.local` in the project root with **one** of:
+   ```
+   TMDB_BEARER_TOKEN=your_v4_read_access_token
+   # or
+   TMDB_API_KEY=your_v3_api_key
+   ```
+   Get a token at https://www.themoviedb.org/settings/api.
+3. Run dev server:
+   ```bash
+   npm run dev
+   ```
+   Open http://localhost:3000.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Hosted app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+_TODO: add Vercel URL after deploy._
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Features
 
-## Learn More
+- Search movies by title (server-side proxy to TMDB)
+- Details view (modal): poster, overview, year, runtime, genres, tagline
+- Favorites with 1–5 star rating + optional note, persisted to LocalStorage
+- Empty / loading / error states for search and details
+- Saved indicator on result cards
 
-To learn more about Next.js, take a look at the following resources:
+## Technical decisions & tradeoffs
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **API proxy.** The TMDB token never reaches the browser — all calls go through `/api/search` and `/api/movie/[id]` (Next.js route handlers in `src/app/api/`). The shared `tmdbFetch` helper in `src/lib/tmdb.ts` reads `TMDB_BEARER_TOKEN` or `TMDB_API_KEY` from the server env and surfaces TMDB error messages with status codes.
+- **State management.** Plain React state in a single client component (`src/app/page.tsx`) plus a `useFavorites` hook. No Redux/Zustand — overkill for one screen.
+- **Persistence.** LocalStorage only (key `movie-explorer:favorites:v1`). Chosen over a DB to stay in the 3-hour scope; favorites are per-browser. The shape is versioned in the key so a future migration is straightforward.
+- **Details view.** Modal rather than a separate route. Simpler navigation, keeps the search results on screen, fewer files. Tradeoff: details aren't deep-linkable.
+- **Images.** TMDB image host is allowed in `next.config.mjs`. `next/image` is used with `unoptimized` to avoid Vercel image-optimization quotas on the free tier.
+- **Styling.** Tailwind, no component library — keeps the bundle small and the markup readable.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Known limitations / what I'd improve with more time
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- No pagination on search results (TMDB returns 20 per page; we only show page 1).
+- No debounced live search — submit-driven.
+- No server-side persistence; favorites don't sync across devices. A `/api/favorites` route backed by SQLite/Postgres would be the next step.
+- No tests. Would add a small Vitest suite for `useFavorites` and a Playwright smoke test for search → details → save.
+- Accessibility is basic (labels, ESC-to-close); modal could trap focus and restore it on close.
+- No theming toggle; relies on system dark mode.
+- Details modal could show cast, trailer, and external ratings (a second TMDB call to `/movie/{id}?append_to_response=credits,videos`).
